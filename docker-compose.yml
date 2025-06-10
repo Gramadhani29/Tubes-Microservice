@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - EVENT_STATUS_SERVICE_URL=http://event-status-service:5001
+      - ROOM_BOOKING_SERVICE_URL=http://room-booking-status-service:5002
+      - ALL_EVENTS_SERVICE_URL=http://all-events-service:5003
+      - SUBMIT_EVENT_SERVICE_URL=http://submit-event-service:5004
+      - APPROVE_EVENT_SERVICE_URL=http://approve-event-service:5005
+    depends_on:
+      - event-status-service
+      - room-booking-status-service
+      - all-events-service
+      - submit-event-service
+      - approve-event-service
+    networks:
+      - app-network
+
+  event-status-service:
+    build:
+      context: .
+      dockerfile: services/event-status-service/Dockerfile
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./services/event-status-service:/app
+      - ./models.py:/app/models.py
+      - ./schema.graphql:/app/schema.graphql
+      - ./kemahasiswaan.db:/app/kemahasiswaan.db
+    networks:
+      - app-network
+
+  room-booking-status-service:
+    build:
+      context: .
+      dockerfile: services/room-booking-status-service/Dockerfile
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./services/room-booking-status-service:/app
+      - ./models.py:/app/models.py
+      - ./schema.graphql:/app/schema.graphql
+      - ./kemahasiswaan.db:/app/kemahasiswaan.db
+    networks:
+      - app-network
+
+  all-events-service:
+    build:
+      context: .
+      dockerfile: services/all-events-service/Dockerfile
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./services/all-events-service:/app
+      - ./models.py:/app/models.py
+      - ./schema.graphql:/app/schema.graphql
+      - ./kemahasiswaan.db:/app/kemahasiswaan.db
+    networks:
+      - app-network
+
+  submit-event-service:
+    build:
+      context: .
+      dockerfile: services/submit-event-service/Dockerfile
+    ports:
+      - "5004:5004"
+    volumes:
+      - ./services/submit-event-service:/app
+      - ./models.py:/app/models.py
+      - ./schema.graphql:/app/schema.graphql
+      - ./kemahasiswaan.db:/app/kemahasiswaan.db
+    networks:
+      - app-network
+
+  approve-event-service:
+    build:
+      context: .
+      dockerfile: services/approve-event-service/Dockerfile
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./services/approve-event-service:/app
+      - ./models.py:/app/models.py
+      - ./schema.graphql:/app/schema.graphql
+      - ./kemahasiswaan.db:/app/kemahasiswaan.db
+    networks:
+      - app-network
+
+  frontend-user:
+    build:
+      context: ./frontend-user
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    depends_on:
+      - api-gateway
+    networks:
+      - app-network
+
+  frontend-ditmawa:
+    build:
+      context: ./frontend-ditmawa
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+    depends_on:
+      - api-gateway
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge 
